@@ -1,95 +1,141 @@
-# Customer Shopping Behavior Analysis
+# Customer Intelligence Platform — Shopping Analytics
 
-An end-to-end data analytics portfolio project exploring customer shopping behavior with Python, SQL, PostgreSQL, and Power BI.
+An end-to-end analytics portfolio project that turns customer shopping data into a tested, interactive customer-intelligence app using Python, pandas, SQL, PostgreSQL, Streamlit, and Power BI.
 
-## Project objective
+## What this project does
 
-Turn a customer shopping dataset into understandable business insights about purchase amounts, product preferences, ratings, discounts, shipping, payment methods, and subscription status.
+- **Data preparation:** clean column names, handle missing review ratings, and derive descriptive features.
+- **Data-quality pipeline:** check duplicate IDs, missing values, invalid ranges, category consistency, and promotion-field mismatches.
+- **Business analytics:** summarize purchase amounts, categories, products, ratings, shipping, payment methods, subscriptions, and discount usage.
+- **Interactive dashboard:** explore KPIs and filters in a Streamlit app.
+- **Customer segmentation:** run reproducible K-Means segments on available numeric features, with a silhouette score when it can be calculated.
+- **Natural-language analytics:** ask supported business questions in plain English. Questions are mapped to approved pandas analyses; the app does not execute arbitrary SQL.
+- **AI-assisted insights:** optionally generate narrative summaries with an OpenAI API key. Deterministic insights remain available without an API key.
+- **Product discovery baseline:** find popular and well-rated products within a category. This is a popularity baseline, not a personalized recommender trained on transaction histories.
+- **Downloadable reports:** export filtered records and an analysis snapshot as Markdown/CSV.
+- **Automated checks:** run tests and Python compilation through GitHub Actions.
+- **Forecasting readiness:** a validation scaffold explains the transaction-date requirements before a time-series forecast can be run.
 
-## Tools
+## Repository map
 
-- **Python:** pandas, Jupyter Notebook
-- **SQL:** PostgreSQL
-- **Database integration:** SQLAlchemy and psycopg2
-- **Visualization:** Microsoft Power BI
-
-## Repository contents
-
-| File | Purpose |
+| Path | Purpose |
 |---|---|
-| `customer_shopping_behavior.csv` | Source dataset used in the analysis |
-| `code.ipynb` | Data inspection, cleaning, feature engineering, and PostgreSQL loading workflow |
+| `customer_shopping_behavior.csv` | Source dataset |
+| `code.ipynb` | Original notebook workflow for cleaning, feature engineering, and PostgreSQL loading |
 | `customer-database.sql` | Business analysis queries |
-| `customer_behavior_dashboard.pbix` | Power BI dashboard |
-| `Customer Shopping Behavior Analysis.pdf` | Exported project report |
+| `sql/data_quality_checks.sql` | PostgreSQL data-quality queries |
+| `app.py` | Streamlit customer analytics application |
+| `src/analytics.py` | Reusable analysis, segmentation, and recommendation functions |
+| `src/data_quality.py` | Reusable data validation checks |
+| `src/llm_insights.py` | Optional AI narrative insights |
+| `src/forecasting.py` | Forecast readiness checks for future transaction-level data |
+| `scripts/generate_report.py` | Generate a dated Markdown snapshot report and CSV summary |
+| `tests/` | Automated unit tests |
+| `docs/data_dictionary.md` | Field definitions and interpretation notes |
+| `docs/powerbi-guide.md` | Suggested Power BI pages and measures |
+| `.github/workflows/ci.yml` | Continuous integration workflow |
 | `requirements.txt` | Python dependencies |
-| `.env.example` | Example environment-variable names; contains no credentials |
-| `sql/data_quality_checks.sql` | SQL checks to run after loading the data |
 
-## Workflow
+## Quick start
 
-1. Load the CSV and inspect dimensions, data types, missing values, and summary statistics.
-2. Impute missing review ratings using the median rating within the relevant category.
-3. Standardize column names and derive age-group and purchase-frequency features.
-4. Check whether `discount_applied` and `promo_code_used` carry duplicate information before retaining one field.
-5. Load the prepared data into a local PostgreSQL table named `customer`.
-6. Use SQL to explore spending, product ratings, discounts, shipping, subscriptions, purchase-history bands, and age groups.
-7. Use Power BI to communicate the findings visually.
+Python 3.10+ is recommended.
 
-## Setup
-
-### 1. Create an environment and install packages
-
-Python 3.10 or later is recommended.
+### 1. Create an environment
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it, then install dependencies:
+Activate it, then install the dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure PostgreSQL securely
+### 2. Launch the app
 
-Create a PostgreSQL database named `customer_behavior`, then set the environment variables below in your local terminal or IDE. Do not put real passwords in a notebook or commit them to Git.
+```bash
+streamlit run app.py
+```
 
-| Variable | Default / purpose |
+The app looks for `customer_shopping_behavior.csv` in the repository root. You can also upload a CSV from the app. It normalizes column names and shows data-quality results before analysis.
+
+### 3. Optional AI-generated narrative
+
+Set `OPENAI_API_KEY` in your local environment to enable AI-written insights. Optionally set `OPENAI_MODEL` to choose an available model. Without a key, the app uses deterministic, local summaries. Do not place a real API key in source code or commit it.
+
+### 4. Optional PostgreSQL workflow
+
+Create a PostgreSQL database, then set these environment variables in your terminal or IDE:
+
+| Variable | Purpose |
 |---|---|
-| `POSTGRES_USER` | Database user; defaults to `postgres` |
-| `POSTGRES_PASSWORD` | Required password, supplied through the environment |
-| `POSTGRES_DB` | Database name; defaults to `customer_behavior` |
-| `POSTGRES_HOST` | Host; defaults to `localhost` |
-| `POSTGRES_PORT` | Port; defaults to `5432` |
+| `POSTGRES_USER` | Database username |
+| `POSTGRES_PASSWORD` | Database password |
+| `POSTGRES_DB` | Database name (default: `customer_behavior`) |
+| `POSTGRES_HOST` | Host (default: `localhost`) |
+| `POSTGRES_PORT` | Port (default: `5432`) |
 
-Copy `.env.example` to `.env` only if you use a local environment-file loader, and keep `.env` untracked. The notebook reads environment variables directly; it does not automatically load a `.env` file.
+Run `code.ipynb` cells in order. Run `customer-database.sql` and `sql/data_quality_checks.sql` after the table is loaded. The notebook reads environment variables directly; it does not automatically load a `.env` file.
 
-### 3. Run the notebook
+### 5. Generate a snapshot report
 
-Open `code.ipynb` in Jupyter, run the analysis cells in order, and run the PostgreSQL loading cell only after configuring the database environment variables.
+```bash
+python scripts/generate_report.py
+```
 
-### 4. Run SQL analysis
+The script writes a dated Markdown report and CSV summary under `reports/generated/`. It is a point-in-time snapshot, not a measurement of week-over-week change: the source data has no transaction date.
 
-After the notebook creates the `customer` table, execute `customer-database.sql` in your PostgreSQL client. Run `sql/data_quality_checks.sql` to inspect key data-quality conditions.
+### 6. Run tests
 
-## Interpretation and limitations
+```bash
+pytest -q
+```
 
-- The current dataset has customer attributes and purchase-related fields, but it does not provide a transaction timestamp, reliable order identifier, customer acquisition date, product cost, or exact discount amount.
-- As a result, this project cannot establish monthly sales trends, customer retention/churn over time, customer lifetime value, profit margin, or the causal effect of discounts.
-- A row count represents customer records in this dataset; it should not be presented as a universal order-count metric.
-- Purchase-history bands are descriptive groups, not verified lifecycle labels such as “new,” “returning,” or “loyal.”
-- Differences between groups are observational associations. They do not by themselves prove that subscription status, discounts, or shipping choices caused higher spending.
-- Review-rating imputation should be documented, and any dashboard conclusions should be checked against the imputed values.
+## Streamlit app features
 
-## Suggested next improvements
+1. **Overview:** key totals, average purchase amount, ratings, category breakdowns, and interactive filters.
+2. **Data quality:** validation summary and row-level issue counts.
+3. **Customer segments:** K-Means clusters based on available numeric features.
+4. **Discount analysis:** compare observed purchase amounts for discount vs. non-discount records.
+5. **Ask the data:** natural-language questions mapped to a small set of safe, predefined analyses.
+6. **Product discovery:** popular and highly rated products by category.
+7. **Reports:** download a Markdown snapshot and filtered CSV.
 
-- Add screenshots of the Power BI report to this README.
-- Add automated tests for the cleaning and validation steps.
-- Record the dataset source, license, refresh date, and a data dictionary.
-- Add validated, reproducible summary tables and a concise findings section with exact values from the final analysis.
+## Power BI dashboard enhancement plan
 
-## Security note
+The existing `customer_behavior_dashboard.pbix` can complement the app with four report pages:
 
-Never commit credentials. If a database password was previously committed to a public repository, rotate it immediately. Removing it from the current file does not erase it from earlier Git history; history cleanup may also be required.
+- **Executive Overview:** total purchase amount in the dataset, average purchase amount, average rating, record count, and category contribution.
+- **Customer Insights:** age group, subscription status, purchase-history bands, and purchase frequency.
+- **Product Performance:** product/category counts, average rating with sample size, and purchase amount distribution.
+- **Shipping & Promotions:** shipping method, payment method, discount usage, and observed purchase amount comparisons.
+
+Use clear titles, dynamic slicers, consistent number formatting, tooltips, and visible sample sizes. Add a note that the source represents customer/purchase-related records rather than a full event-level transaction ledger.
+
+## Forecasting and recommender scope
+
+The source dataset does **not** contain a reliable transaction timestamp, order ID, customer acquisition date, product cost/margin, or a complete basket-level purchase history. Therefore, the current project does not claim to calculate sales trends, churn, retention, customer lifetime value, profit, causal discount lift, or a valid time-series forecast. The forecasting module checks for a date column and fails with a clear explanation until transaction-level dated data is supplied.
+
+The product discovery feature is a popularity/rating baseline, not a personalized recommender. A stronger recommender would require multiple dated orders and item-level baskets per customer.
+
+## Data interpretation
+
+- Counts in this dataset are record/customer counts, not universal order counts.
+- Purchase-history groups are descriptive bands, not verified lifecycle labels such as “new,” “returning,” or “loyal.”
+- Discount and subscription comparisons are observational. They do not prove causation.
+- Review ratings may be imputed during notebook cleaning; distinguish observed values from imputed values when reporting conclusions.
+- Confirm the source dataset's provenance and license before redistributing it.
+
+## Development
+
+```bash
+pytest -q
+python -m compileall -q app.py src scripts
+```
+
+GitHub Actions runs the automated checks on pushes and pull requests.
+
+## Next data upgrades
+
+To unlock credible forecasting, retention, customer lifetime value, profit analysis, and personalized recommendations, collect a transaction-level table with order ID, customer ID, timestamp, product ID, quantity, unit price, discount amount, cost, and order/basket relationships.
