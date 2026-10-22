@@ -7,9 +7,9 @@ An end-to-end analytics portfolio project that turns customer shopping data into
 - **Data preparation:** clean column names, handle missing review ratings, and derive descriptive features.
 - **Data-quality pipeline:** check duplicate IDs, missing values, invalid ranges, category consistency, and promotion-field mismatches.
 - **Business analytics:** summarize purchase amounts, categories, products, ratings, shipping, payment methods, subscriptions, and discount usage.
-- **Interactive dashboard:** explore KPIs and filters in a Streamlit app.
+- **Multi-page BI dashboard:** use a clear sidebar menu for executive KPIs, customer demographics, product/category performance, purchase and promotion comparisons, shipping/payments, customer segments, data quality, and reports. Pages contain multiple interactive Plotly charts.
 - **Customer segmentation:** run reproducible K-Means segments on available numeric features, with a silhouette score when it can be calculated.
-- **Natural-language analytics:** ask supported business questions in plain English. Questions are mapped to approved pandas analyses; the app does not execute arbitrary SQL.
+- **AI chatbot:** ask general questions or questions about the dataset in a conversational chat interface. With an OpenAI API key, it answers broad questions and uses aggregate dataset context for data-related answers; without a key, a limited local analytics fallback remains available.
 - **AI-assisted insights:** optionally generate narrative summaries with an OpenAI API key. Deterministic insights remain available without an API key.
 - **Product discovery baseline:** find popular and well-rated products within a category. This is a popularity baseline, not a personalized recommender trained on transaction histories.
 - **Downloadable reports:** export filtered records and an analysis snapshot as Markdown/CSV.
